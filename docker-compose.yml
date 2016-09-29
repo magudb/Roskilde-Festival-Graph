@@ -1,0 +1,11 @@
+version: '2'
+services:
+ graph:
+  image: neo4j:3.0
+  ports:
+   - "7474:7474"
+ search:
+  image: elasticsearch:2.5
+  ports: 
+   - "9200:9200"
+   - "9300:9300"
