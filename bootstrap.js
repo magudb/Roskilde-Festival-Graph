@@ -6,15 +6,19 @@ var async = require("async");
 
 var db = new neo4j.GraphDatabase('http://neo4j:1234567890@docker.local:7474');
 var client = new elasticsearch.Client({
-    host: 'docker.local:9200'
+    host: 'docker.local:9200',
+    log: 'trace',
+    apiVersion: '1.0'
 });
 
-var body = {
-    band: {
+client.indices.create({
+    index: "bands"
+}).then(function () {
+    var body = {
         properties: {
             name: { "type": "string" },
             description: { "type": "string" },
-            name_suggest: {
+            suggest: {
                 "type": "completion",
                 "analyzer": "simple",
                 "search_analyzer": "simple",
@@ -22,10 +26,14 @@ var body = {
             }
 
         }
-    }
-}
+    };
 
-client.indices.putMapping({ index: "bands", type: "band", body: body });
+    client.indices.putMapping({ index: "bands", type: "band", body: body }).then(function (response) {
+        console.log(response);
+    });
+});
+
+
 
 
 var Entities = require('html-entities').AllHtmlEntities;
@@ -141,7 +149,7 @@ function getSuggestions(input) {
 }
 elasticQueue.drain = function () {
     console.log('all items have been processed');
-    getSuggestions("NI").then((result)=>console.log(result));
+    getSuggestions("NI").then((result) => console.log(result));
 };
 promises = years.map((val, index) => {
     var requestUrl = `${url}/artists/${val}`;
@@ -190,7 +198,7 @@ Promise.all(promises).then(values => {
             var searchmodel = {
                 name: band.displayName,
                 description: band.description,
-                name_suggest: {
+                suggest: {
                     input: band.displayName.split(" "),
                     output: band.displayName,
                     payload: { id: band.displayName.hashCode() }
