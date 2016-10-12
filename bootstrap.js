@@ -4,9 +4,9 @@ var striptags = require('striptags');
 var elasticsearch = require('elasticsearch');
 var async = require("async");
 
-var db = new neo4j.GraphDatabase('http://neo4j:1234567890@docker.local:7474');
+var db = new neo4j.GraphDatabase('http://localhost:7474');
 var client = new elasticsearch.Client({
-    host: 'docker.local:9200',
+    host: 'localhost:9200',
     log: 'trace',
     apiVersion: '1.0'
 });
@@ -205,27 +205,27 @@ Promise.all(promises).then(values => {
                 }
             }
 
-            // queries.push(createNodeQuery("Band", bandName))
-            // queries.push(createRelationshipQuery("Played", "Band", bandName, "Year", band.year))
+            queries.push(createNodeQuery("Band", bandName))
+            queries.push(createRelationshipQuery("Played", "Band", bandName, "Year", band.year))
 
-            // band.countries.forEach(c => {
-            //     queries.push(createNodeQuery("Country", c.name));
-            //     queries.push(createRelationshipQuery("MembersFrom", "Band", bandName, "Country", c.name))
-            // });
+            band.countries.forEach(c => {
+                queries.push(createNodeQuery("Country", c.name));
+                queries.push(createRelationshipQuery("MembersFrom", "Band", bandName, "Country", c.name))
+            });
 
-            // band.gigs.forEach(gig => {
-            //     queries.push(createNodeQuery("Stage", gig.stage.name));
-            //     queries.push(createRelationshipQuery("PlayedAt", "Band", bandName, "Stage", gig.stage.name));
-            // })
+            band.gigs.forEach(gig => {
+                queries.push(createNodeQuery("Stage", gig.stage.name));
+                queries.push(createRelationshipQuery("PlayedAt", "Band", bandName, "Stage", gig.stage.name));
+            })
 
-            // var model = { queries: queries }
+            var model = { queries: queries }
 
-            // q.push(model, function (err) {
-            //     if (err) {
-            //         console.log(err);
-            //         return;
-            //     }
-            // });
+            q.push(model, function (err) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+            });
 
             elasticQueue.push(searchmodel, function (err) {
                 if (err) {
@@ -234,7 +234,7 @@ Promise.all(promises).then(values => {
                 }
             });
 
-            //setTimeout(() => getDescription(band), 200);
+           
         })
     });
 });
